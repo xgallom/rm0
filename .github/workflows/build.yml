@@ -1,0 +1,100 @@
+name: Build
+
+on:
+  push:
+    trm0:
+      - 'v*'
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.15.2
+
+      - name: Test
+        run: zig build test
+
+  build:
+    name: ${{ matrix.target }}
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-linux
+            os: ubuntu-latest
+            artifact: rm0-linux-x86_64
+
+          - target: x86_64-windows
+            os: windows-latest
+            artifact: rm0-windows-x86_64.exe
+
+          # - target: x86_64-macos
+          #   os: macos-13
+          #   artifact: rm0-macos-x86_64
+
+          - target: aarch64-macos
+            os: macos-latest
+            artifact: rm0-macos-aarch64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.15.2
+          cache-key: ${{ matrix.os }}-${{ matrix.zig-version }}
+
+      - name: Build
+        run: zig build -Dtarget=${{ matrix.target }} --release=fast
+
+      - name: Rename artifact (unix)
+        if: runner.os != 'Windows'
+        run: mv zig-out/bin/$(ls zig-out/bin/ | head -1) zig-out/bin/${{ matrix.artifact }}
+
+      - name: Rename artifact (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $bin = Get-ChildItem zig-out/bin/ | Select-Object -First 1
+          Rename-Item $bin.FullName "${{ matrix.artifact }}"
+
+      - name: Mark executable (unix)
+        if: runner.os != 'Windows'
+        run: chmod +x zig-out/bin/${{ matrix.artifact }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: zig-out/bin/${{ matrix.artifact }}
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true

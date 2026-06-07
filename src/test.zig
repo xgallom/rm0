@@ -35,7 +35,7 @@ fn makeContext(gpa: std.mem.Allocator) !rm0.Context {
 // ---------------------------------------------------------------------------
 
 test "eraseFile removes the file" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     try writeFile(tmp.dir, "secret.txt", "sensitive data");
@@ -50,7 +50,7 @@ test "eraseFile removes the file" {
 }
 
 test "eraseFile removes empty file" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     try writeFile(tmp.dir, "empty.txt", "");
@@ -65,7 +65,7 @@ test "eraseFile removes empty file" {
 }
 
 test "eraseFile leaves no file with original name" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     try writeFile(tmp.dir, "data.bin", "top secret");
@@ -84,7 +84,7 @@ test "eraseFile leaves no file with original name" {
 }
 
 test "eraseFile does not leave readable original content" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     const content = "password: hunter2";
@@ -112,7 +112,7 @@ test "eraseFile does not leave readable original content" {
 // ---------------------------------------------------------------------------
 
 test "eraseDir removes empty directory" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     try tmp.dir.makeDir("subdir");
@@ -127,7 +127,7 @@ test "eraseDir removes empty directory" {
 }
 
 test "eraseDir removes directory with files" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     try tmp.dir.makeDir("private");
@@ -146,7 +146,7 @@ test "eraseDir removes directory with files" {
 }
 
 test "eraseDir removes nested directories" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     try tmp.dir.makePath("root/a/b/c");
@@ -164,7 +164,7 @@ test "eraseDir removes nested directories" {
 }
 
 test "eraseDir leaves no entries behind" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     try tmp.dir.makePath("vault/inner");
@@ -189,7 +189,7 @@ test "eraseDir leaves no entries behind" {
 // ---------------------------------------------------------------------------
 
 test "deleteFile removes symlink without following it" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     // target file to verify it is NOT erased
@@ -214,7 +214,7 @@ test "deleteFile removes symlink without following it" {
 }
 
 test "deleteFile removes dangling symlink" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     try tmp.dir.symLink("/nonexistent/ghost.txt", "dangling.txt", .{});
@@ -233,7 +233,7 @@ test "deleteFile removes dangling symlink" {
 // ---------------------------------------------------------------------------
 
 test "rename produces hex basename" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     try writeFile(tmp.dir, "original.txt", "content");
@@ -260,7 +260,7 @@ test "rename produces hex basename" {
 }
 
 test "rename produces unique names across calls" {
-    var tmp = std.testing.tmpDir(.{});
+    var tmp = std.testing.tmpDir(.{ .access_sub_paths = true, .iterate = true });
     defer tmp.cleanup();
 
     try writeFile(tmp.dir, "a.txt", "a");
